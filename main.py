@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from schemas import PostCreate, PostResponse
 
 app = FastAPI()
 
@@ -17,14 +18,14 @@ posts: list[dict] = [
         "author": "Yash Raj",
         "title": "FastAPI is Awesome",
         "content": "This framework is really easy",
-        "date_posted": "October 29, 2026"
+        "date_posted": "October 28, 2026"
     },
     {
         "id": 2,
         "author": "M Devesh",
         "title": "Python is Awesome",
         "content": "This language is really easy",
-        "date_posted": "October 28, 2026"
+        "date_posted": "October 29, 2026"
     },
 ]
 
@@ -46,11 +47,24 @@ def post_page(request: Request, post_id: int):
         detail="Post not found"
     )
 
-@app.get("/api/posts")
+@app.get("/api/posts", response_model=list[PostResponse])
 def get_posts():
     return posts
 
-@app.get("/api/posts/{post_id}")
+@app.post("/api/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+def create_post(post: PostCreate):
+    new_id = max(p["id"] for p in posts) + 1 if posts else 1
+    new_post = {
+        "id": new_id,
+        "author": post.author,
+        "title": post.title,
+        "content": post.content,
+        "date_posted": "October 30, 2026"
+    }
+    posts.append(new_post)
+    return new_post
+
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
 def get_post(post_id: int):
     for post in posts:
         if post.get("id") == post_id:
